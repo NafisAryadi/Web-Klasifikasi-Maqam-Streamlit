@@ -3,13 +3,17 @@ import sys
 import csv
 import time
 import dropbox
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import streamlit as st
 import soundfile as sf
 import tensorflow as tf
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'services'))
 from preprocessing import predict_audio_with_chroma
+
+WIB = timezone(timedelta(hours=7))
+
+now_wib = datetime.now(WIB)
 
 
 HISTORY_CSV = "history.csv"
@@ -35,7 +39,8 @@ def upload_to_dropbox(local_path, target_path):
     )
 
 def gen_timestamp_filename(suffix=".wav"):
-    ts = int(time.time())
+    now_wib = datetime.now(WIB)
+    ts = now_wib.strftime("%Y%m%d_%H%M%S")
     return f"{ts}{suffix}"
 
 def save_buffer_as_wav(buffer, sr=16000):
@@ -76,7 +81,9 @@ else:  # Rekam
     st.write("🎤 Klik tombol ► untuk mulai merekam, klik ■ apabila selesai.")
     audio_bytes = st.audio_input("Rekam suara Anda di sini(Untuk hasil yang optimal, rekam suara lebih dari 30 detik)")  # ← widget baru
     if audio_bytes:
-        fn = f"{int(time.time())}.wav"
+        now_wib = datetime.now(WIB)
+        ts = now_wib.strftime("%Y%m%d_%H%M%S")
+        fn = f"{ts}.wav"
         os.makedirs("recordings", exist_ok=True)
         file_path = os.path.join("recordings", fn)
         data = audio_bytes.read() if hasattr(audio_bytes, "read") else audio_bytes
@@ -98,11 +105,14 @@ if file_path is not None:
 
                 ori_name = upl.name if source == "Upload" else os.path.basename(file_path)
 
+                now_wib = datetime.now(WIB)
+                ts = now_wib.strftime("%Y%m%d_%H%M%S")
+
                 with open(HISTORY_CSV, "a", newline="", encoding="utf-8") as f:
                     writer = csv.writer(f)
                     writer.writerow([
                         ori_name,
-                        datetime.now().isoformat(sep=" ", timespec="seconds"),
+                        ts,
                         class_names[predicted_class],
                         f"{max_probability:.4f}"
                     ])
