@@ -94,7 +94,7 @@ if file_path is not None:
                 predicted_class, max_probability = predict_audio_with_chroma(file_path, model_chroma)
                 class_names = ['Ajam', 'Bayat', 'Hijaz', 'Kurd', 'Nahawand', 'Rast', 'Saba', 'Seka']
                 st.write(f"Hasil Klasifikasi: {class_names[predicted_class]}")
-                st.write(f"Kemungkinan Prediksi Benar: {max_probability:.2f * 100}%")
+                st.write(f"Kemungkinan Prediksi Benar: {max_probability:.2%}")
 
                 ori_name = upl.name if source == "Upload" else os.path.basename(file_path)
 
