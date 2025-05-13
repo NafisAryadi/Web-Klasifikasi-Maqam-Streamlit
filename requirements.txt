@@ -5,4 +5,3 @@ librosa
 soundfile
 scipy
 dropbox
-zoneinfo

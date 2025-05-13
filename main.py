@@ -4,7 +4,6 @@ import csv
 import time
 import dropbox
 from datetime import datetime
-from zoneinfo import ZoneInfo
 import streamlit as st
 import soundfile as sf
 import tensorflow as tf
@@ -12,7 +11,6 @@ import tensorflow as tf
 sys.path.append(os.path.join(os.path.dirname(__file__), 'services'))
 from preprocessing import predict_audio_with_chroma
 
-now_wib = datetime.now(ZoneInfo("Asia/Jakarta"))
 
 HISTORY_CSV = "history.csv"
 if not os.path.exists(HISTORY_CSV):
@@ -37,8 +35,7 @@ def upload_to_dropbox(local_path, target_path):
     )
 
 def gen_timestamp_filename(suffix=".wav"):
-    now = datetime.now(ZoneInfo("Asia/Jakarta"))
-    ts = now.strftime("%Y%m%d_%H%M%S")
+    ts = int(time.time())
     return f"{ts}{suffix}"
 
 def save_buffer_as_wav(buffer, sr=16000):
@@ -103,11 +100,9 @@ if file_path is not None:
 
                 with open(HISTORY_CSV, "a", newline="", encoding="utf-8") as f:
                     writer = csv.writer(f)
-                    now_jakarta = datetime.now(ZoneInfo("Asia/Jakarta"))
-                    ts = now_jakarta.isoformat(sep=" ", timespec="seconds")
                     writer.writerow([
                         ori_name,
-                        ts,
+                        datetime.now().isoformat(sep=" ", timespec="seconds"),
                         class_names[predicted_class],
                         f"{max_probability:.4f}"
                     ])
