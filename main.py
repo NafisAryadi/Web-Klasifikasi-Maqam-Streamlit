@@ -64,7 +64,7 @@ source = st.radio("Sumber audio:", ["Upload", "Rekam"])
 
 file_path = None
 if source == "Upload":
-    upl = st.file_uploader("Pilih file untuk diunggah(Untuk hasil yang optimal, gunakan rekaman suara berdurasi lebih dari 30 detik)", type="wav")
+    upl = st.file_uploader("Pilih file untuk diunggah(Untuk hasil yang optimal, gunakan rekaman suara berdurasi lebih dari 15 detik)", type="wav")
     if upl is not None:
         file_path = save_uploaded_file(upl)
         fname = upl.name
@@ -74,7 +74,7 @@ if source == "Upload":
 
 else:  # Rekam
     st.write("🎤 Klik tombol ► untuk mulai merekam, klik ■ apabila selesai.")
-    audio_bytes = st.audio_input("Rekam suara Anda di sini(Untuk hasil yang optimal, rekam suara lebih dari 30 detik)")  # ← widget baru
+    audio_bytes = st.audio_input("Rekam suara Anda di sini(Untuk hasil yang optimal, rekam suara lebih dari 15 detik)")  # ← widget baru
     if audio_bytes:
         fn = f"{int(time.time())}.wav"
         os.makedirs("recordings", exist_ok=True)
