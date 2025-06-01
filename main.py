@@ -52,7 +52,7 @@ def save_uploaded_file(upl):
     with open(path, "wb") as f: f.write(upl.getbuffer())
     return path
 
-model_chroma = tf.keras.models.load_model("model/chroma_model.h5")
+model_chroma = tf.keras.models.load_model("model/chroma_model500.h5")
 
 st.header(":blue[Klasifikasi] Maqam Bacaan :green[Al-'Quran]")
 
@@ -91,10 +91,29 @@ if file_path is not None:
     if st.button('Prediksi'):
             with st.spinner('Proses prediksi sedang berlangsung, harap tunggu...'):
                 time.sleep(3)
-                predicted_class, max_probability = predict_audio_with_chroma(file_path, model_chroma)
+                top3 = predict_audio_with_chroma(file_path, model_chroma)
                 class_names = ['Ajam', 'Bayat', 'Hijaz', 'Kurd', 'Nahawand', 'Rast', 'Saba', 'Seka']
-                st.write(f"Hasil Klasifikasi: {class_names[predicted_class]}")
-                st.write(f"Kemungkinan Prediksi Benar: {max_probability:.2%}")
+                if not top3:
+                    st.warning("File terlalu pendek atau tidak bisa diekstrak fiturnya → tidak ada window.")
+                else:
+                    highest_avg = top3[0][1]  # prob rata2 kelas terbaik
+
+                    if highest_avg < 0.80:
+                        # Jika confidence rata‐rata < 80%, kategori → “Netral”
+                        st.markdown("**Hasil Prediksi:** `Netral` (Akurasi terlalu rendah untuk diklasifikasikan)")
+                        st.markdown("**Top 3 Prediksi (kelas – confidence rata‐rata):**")
+                        for idx, (cls_idx, prob) in enumerate(top3, start=1):
+                            st.write(f"{idx}. {class_names[cls_idx]} — {prob*100:.2f}%")
+                        predicted_label = class_names[top3[0][0]]
+                        top3_str = "Netral"
+                    else:
+                        # Tampilkan 3 kelas teratas
+                        st.markdown("**Top 3 Prediksi (kelas – confidence rata‐rata):**")
+                        for idx, (cls_idx, prob) in enumerate(top3, start=1):
+                            st.write(f"{idx}. {class_names[cls_idx]} — {prob*100:.2f}%")
+                        predicted_label = class_names[top3[0][0]]
+                        # Buat string gabungan untuk CSV
+                        top3_str = "; ".join([f"{class_names[c]}:{p:.4f}" for c, p in top3])
 
                 ori_name = upl.name if source == "Upload" else os.path.basename(file_path)
 
@@ -103,7 +122,6 @@ if file_path is not None:
                     writer.writerow([
                         ori_name,
                         datetime.now().isoformat(sep=" ", timespec="seconds"),
-                        class_names[predicted_class],
-                        f"{max_probability:.4f}"
+                        top3_str
                     ])
                 upload_to_dropbox("history.csv", "/history.csv")
